@@ -4,7 +4,7 @@ export async function POST(req) {
   try {
     const { username, action, value } = await req.json();
     
-    // جلب الرول مع الباسورد المشفر وتاريخ الانضمام لضمان عمل الواجهة
+    // جلب الرول مع الهاش والتاريخ لضمان عمل الواجهة الرسومية
     const [rows] = await pool.query(
       'SELECT Role, Encrypted_Password, Created_At FROM Users_Data WHERE Username = ?', 
       [username]
@@ -15,22 +15,27 @@ export async function POST(req) {
     const { Role: role, Encrypted_Password, Created_At } = rows[0];
     let allowed = false;
 
-    // فحص الصلاحيات
+    // فحص الصلاحيات الصارم
     if (role === 'admin') allowed = true;
     else if (role === 'writer' && action === 'write') allowed = true;
     else if (role === 'reader' && action === 'read') allowed = true;
 
     if (!allowed) {
-      return new Response(JSON.stringify({ error: `صلاحيتك (${role}) لا تسمح بهذا العمل`, role }), { status: 403 });
+      return new Response(JSON.stringify({ 
+        error: `عذراً، صلاحيتك كـ (${role}) لا تسمح بهذا العمل`, 
+        role,
+        Encrypted_Password,
+        Created_At
+      }), { status: 403 });
     }
 
-    // تنفيذ العمليات
+    // تنفيذ عمليات الاختبار
     if (action === 'read') {
       const [data] = await pool.query('SELECT TestValue FROM Permissions_Test WHERE Username = ?', [username]);
       return new Response(JSON.stringify({ 
-        result: `[محتوى DB]: ${data[0]?.TestValue || 'فارغ'}`, 
+        result: `[محتوى DB]: ${data[0]?.TestValue || 'لا توجد بيانات محفوظة بعد'}`, 
         role,
-        Encrypted_Password, // إرسالها للواجهة لمنع الخطأ
+        Encrypted_Password,
         Created_At
       }), { status: 200 });
     } else if (action === 'write') {
@@ -43,8 +48,8 @@ export async function POST(req) {
       }), { status: 200 });
     }
 
-    return new Response(JSON.stringify({ error: 'طلب غير صالح' }), { status: 400 });
+    return new Response(JSON.stringify({ error: 'طلب غير معروف' }), { status: 400 });
   } catch (error) {
-    return new Response(JSON.stringify({ error: 'خطأ في السيرفر' }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'خطأ داخلي في الخادم' }), { status: 500 });
   }
 }
