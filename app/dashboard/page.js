@@ -26,6 +26,7 @@ export default function Dashboard() {
               <th className="p-4 font-bold tracking-wider">ID</th>
               <th className="p-4 font-bold tracking-wider">اسم المستخدم</th>
               <th className="p-4 font-bold tracking-wider">الايميل</th>
+              <th className="p-4 font-bold tracking-wider">الباسورد المشفر</th>
               <th className="p-4 font-bold tracking-wider">تاريخ الانضمام</th>
             </tr>
           </thead>
@@ -35,6 +36,7 @@ export default function Dashboard() {
                 <td className="p-4 text-blue-300 font-semibold">{u.ID}</td>
                 <td className="p-4 font-bold text-blue-100">{u.Username}</td>
                 <td className="p-4 text-blue-200">{u.Email}</td>
+                <td className="p-4 text-gray-500 text-xs break-all max-w-xs">{u.Encrypted_Password}</td>
                 <td className="p-4 text-xs text-gray-400">{new Date(u.Created_At).toLocaleDateString()}</td>
               </tr>
             ))}
