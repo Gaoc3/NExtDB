@@ -5,36 +5,29 @@ export default function PermissionsTest() {
   const [mode, setMode] = useState('read'); 
   const [username, setUsername] = useState('');
   const [value, setValue] = useState('');
-  const [result, setResult] = useState(null);
-  const [errorData, setErrorData] = useState(null);
+  const [response, setResponse] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleAction = async () => {
-    setLoading(true);
-    setResult(null);
-    setErrorData(null);
-
+  const handleExecute = async () => {
+    setLoading(true); setResponse(null); setError(null);
     try {
       const res = await fetch('/api/permissions-test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, action: mode, value }),
       });
-      
       const data = await res.json();
-      if (res.ok) setResult(data);
-      else setErrorData(data);
-    } catch (err) {
-      alert("فشل الاتصال بالسيرفر");
-    } finally {
-      setLoading(false);
-    }
+      if (res.ok) setResponse(data);
+      else setError(data);
+    } catch (err) { alert("Server Error"); }
+    finally { setLoading(false); }
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center p-4">
-      <div className="bg-gray-900 border border-blue-900/40 p-8 rounded-2xl shadow-2xl w-full max-w-md">
-        <h1 className="text-xl font-bold text-blue-500 mb-6 text-center italic tracking-tighter">PERMISSION LAB 🔒</h1>
+    <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center p-4 font-mono">
+      <div className="bg-gray-900 border border-blue-900/50 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+        <h1 className="text-xl font-bold text-blue-500 mb-6 text-center italic tracking-tighter">PERMISSIONS LAB v2.0</h1>
         
         <div className="space-y-4">
           <input 
@@ -44,42 +37,32 @@ export default function PermissionsTest() {
           />
 
           <div className="flex gap-2">
-            <button onClick={() => setMode('read')} className={`flex-1 py-2 rounded font-bold transition-all ${mode === 'read' ? 'bg-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'bg-gray-800 text-gray-500'}`}>READ</button>
-            <button onClick={() => setMode('write')} className={`flex-1 py-2 rounded font-bold transition-all ${mode === 'write' ? 'bg-green-600 shadow-[0_0_15px_rgba(22,163,74,0.4)]' : 'bg-gray-800 text-gray-500'}`}>WRITE</button>
+            <button onClick={() => setMode('read')} className={`flex-1 py-2 rounded font-bold ${mode === 'read' ? 'bg-blue-600 shadow-lg' : 'bg-gray-800 text-gray-500'}`}>READ</button>
+            <button onClick={() => setMode('write')} className={`flex-1 py-2 rounded font-bold ${mode === 'write' ? 'bg-green-600 shadow-lg' : 'bg-gray-800 text-gray-500'}`}>WRITE</button>
           </div>
 
           {mode === 'write' && (
             <input 
-              type="text" placeholder="Temporary Data (10s)..." 
-              className="w-full p-3 rounded bg-black border border-green-900/40 outline-none"
+              type="text" placeholder="Value to inject..." 
+              className="w-full p-3 rounded bg-black border border-green-900/50 outline-none"
               value={value} onChange={(e) => setValue(e.target.value)}
             />
           )}
 
-          <button onClick={handleAction} disabled={loading} className="w-full bg-blue-500 py-3 rounded font-black hover:bg-blue-400 active:scale-95 transition-all shadow-lg">
-            {loading ? "EXECUTING..." : "EXECUTE REQUEST"}
+          <button onClick={handleExecute} disabled={loading} className="w-full bg-blue-500 py-3 rounded font-black hover:bg-blue-400 active:scale-95 transition-all">
+            {loading ? "COMMUNICATING WITH DB..." : "EXECUTE REQUEST"}
           </button>
         </div>
 
-        {/* عرض النتائج */}
-        {(result || errorData) && (
-          <div className={`mt-6 p-4 rounded border text-xs font-mono space-y-3 ${result ? 'bg-blue-900/10 border-blue-500/50' : 'bg-red-900/10 border-red-500/50'}`}>
-            <div className="flex justify-between font-bold border-b border-gray-800 pb-2">
-              <span className={result ? "text-green-400" : "text-red-400"}>{result ? "[ACCESS GRANTED]" : "[ACCESS DENIED]"}</span>
-              <span className="text-gray-400">{result?.role || errorData?.role}</span>
+        {/* عرض النتيجة والهاش */}
+        {(response || error) && (
+          <div className={`mt-6 p-4 rounded border text-xs space-y-2 ${response ? 'bg-green-900/10 border-green-500' : 'bg-red-900/10 border-red-500'}`}>
+            <p className="font-bold underline uppercase">{response ? "Access Granted" : "Access Denied"}</p>
+            <p className="text-gray-200">{response?.result || error?.error}</p>
+            <div className="pt-2 border-t border-gray-800 mt-2">
+              <span className="text-gray-500 block mb-1 uppercase text-[10px]">Security Hash:</span>
+              <code className="text-yellow-600 bg-black p-1 rounded block break-all">{response?.hash || error?.hash}</code>
             </div>
-            
-            <p className="text-gray-200">{result?.result || errorData?.error}</p>
-
-            {/* عرض الهاش المشفر إذا كان مسموحاً */}
-            {(result || errorData) && (
-              <div className="pt-2 border-t border-gray-800">
-                <span className="text-gray-500 block mb-1">Encrypted Hash:</span>
-                <code className="text-yellow-600 bg-black/60 p-1 rounded block truncate" title={result?.Encrypted_Password || errorData?.Encrypted_Password}>
-                  {result?.Encrypted_Password || errorData?.Encrypted_Password}
-                </code>
-              </div>
-            )}
           </div>
         )}
       </div>
