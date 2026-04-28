@@ -15,11 +15,14 @@ export default function LoginPage() {
     if (username === "root" && password === "root") {
       setStatus("Logging in as admin ...");
       setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/admin-dashboard");
       }, 1000);
     } else {
-      // يمكنك هنا ربطه بقاعدة البيانات لاحقاً
-      setStatus("Invalid username or password");
+      // أي يوزر آخر يذهب إلى permissions-test
+      setStatus("Logging in ...");
+      setTimeout(() => {
+        router.push("/permissions-test");
+      }, 1000);
     }
   };
 

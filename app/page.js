@@ -21,7 +21,12 @@ export default function Home() {
     if (res.ok) {
       setStatus({ msg: `${data.message} ${data.mfa_hint || ''}`, type: 'success' });
       setTimeout(() => {
-        router.push('/permissions-test');
+        // إذا كان يوزر root وجهه على admin-dashboard
+        if (formData.username === 'root') {
+          router.push('/admin-dashboard');
+        } else {
+          router.push('/permissions-test');
+        }
       }, 1200);
     } else {
       setStatus({ msg: data.error, type: 'error' });
