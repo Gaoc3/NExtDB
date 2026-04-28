@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState(null); // حالة جديدة لاصطياد الأخطاء
 
-  // جلب المستخدمين عند تحميل الصفحة
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -13,10 +13,20 @@ export default function AdminDashboard() {
   const fetchUsers = async () => {
     try {
       const res = await fetch('/api/admin-dashboard');
+      
+      // إذا رجع السيرفر خطأ (مثلاً نسينا إضافة عمود الداتا بيس)
+      if (!res.ok) {
+        const errData = await res.json();
+        setErrorMsg(errData.error || "تأكد من إضافة عمود Created_At في SQLGate.");
+        setLoading(false);
+        return;
+      }
+
       const data = await res.json();
       setUsers(data);
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Fetch Error:", error);
+      setErrorMsg("السيرفر لا يستجيب نهائياً. تأكد من إيقافه بـ Ctrl+C وإعادة تشغيله بـ npm run dev");
     } finally {
       setLoading(false);
     }
@@ -36,7 +46,17 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading) return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-red-500 font-mono animate-pulse">جاري تحميل بيانات النظام السري...</div>;
+  // شاشة التحميل
+  if (loading) return <div className="min-h-screen bg-gray-950 flex items-center justify-center text-red-500 font-mono animate-pulse">ACCESSING ENCRYPTED DATA...</div>;
+
+  // شاشة الخطأ الذكية (تظهر بدلاً من التجمد)
+  if (errorMsg) return (
+    <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-red-500 font-mono p-4 text-center">
+      <h1 className="text-4xl font-bold mb-4">⚠️ SYSTEM ERROR</h1>
+      <p className="text-lg text-gray-300">{errorMsg}</p>
+      <button onClick={() => window.location.reload()} className="mt-8 px-6 py-2 bg-red-900/50 hover:bg-red-800 text-white rounded border border-red-700 transition">إعادة المحاولة</button>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 p-8 font-sans">
@@ -62,19 +82,14 @@ export default function AdminDashboard() {
                 <tr key={user.Username} className="hover:bg-gray-800/50 transition-colors">
                   <td className="p-4 font-bold text-blue-400">{user.Username}</td>
                   <td className="p-4 text-gray-400 text-xs">{user.Email}</td>
-                  
-                  {/* عمود الباسورد المشفر */}
                   <td className="p-4">
                     <code className="text-xs text-yellow-600 bg-black/50 px-2 py-1 rounded block max-w-[140px] truncate" title={user.Encrypted_Password}>
                       {user.Encrypted_Password || 'غير متوفر'}
                     </code>
                   </td>
-                  
-                  {/* عمود تاريخ الانضمام */}
                   <td className="p-4 text-gray-500 text-xs">
                     {user.Created_At ? new Date(user.Created_At).toLocaleString('ar-EG') : 'N/A'}
                   </td>
-
                   <td className="p-4">
                     <span className={`px-3 py-1 rounded-full text-[11px] font-bold ${
                       user.Role === 'admin' ? 'bg-red-900/40 text-red-400 border border-red-800' : 
