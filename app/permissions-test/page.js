@@ -5,25 +5,14 @@ export default function PermissionsTest() {
   const [mode, setMode] = useState('read'); 
   const [username, setUsername] = useState('');
   const [value, setValue] = useState('');
-  const [result, setResult] = useState('');
-  const [error, setError] = useState('');
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleAction = async () => {
-    if (!username.trim()) {
-      setError('يرجى إدخال اسم المستخدم أولاً.');
-      setResult('');
-      return;
-    }
-    if (mode === 'write' && !value.trim()) {
-      setError('يرجى إدخال القيمة المراد كتابتها.');
-      setResult('');
-      return;
-    }
-
     setLoading(true);
-    setResult('');
-    setError('');
+    setResult(null);
+    setError(null);
 
     try {
       const res = await fetch('/api/permissions-test', {
@@ -34,79 +23,63 @@ export default function PermissionsTest() {
       
       const data = await res.json();
       if (res.ok) {
-        setResult(data.result);
+        setResult(data);
       } else {
         setError(data.error);
       }
     } catch (err) {
-      setError('حدث خطأ في الاتصال بالخادم.');
+      setError("فشل الاتصال بالسيرفر");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100 p-4">
-      <div className="bg-gray-900/90 border border-blue-800 p-8 rounded-2xl shadow-2xl w-full max-w-md">
-        <h1 className="text-2xl font-extrabold mb-6 text-center text-blue-400 drop-shadow-lg tracking-wide">
-          اختبار الصلاحيات
-        </h1>
+    <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center p-4">
+      <div className="bg-gray-900 border border-blue-900 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+        <h1 className="text-xl font-bold text-blue-400 mb-6 text-center italic">PERMISSION TEST CORE</h1>
         
-        <p className="text-center text-gray-400 text-xs mb-6 pb-4 border-b border-gray-800">
-          أدخل اسم المستخدم للتحقق من صلاحياته الفعلية في قاعدة البيانات.
-        </p>
-
         <div className="space-y-4">
-          <div className="flex gap-4">
-            <button 
-              onClick={() => { setMode('read'); setResult(''); setError(''); }} 
-              className={`flex-1 py-2 rounded-lg font-bold transition-all ${
-                mode === 'read' ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
-              }`}
-            >
-              قراءة (Read)
-            </button>
-            <button 
-              onClick={() => { setMode('write'); setResult(''); setError(''); }} 
-              className={`flex-1 py-2 rounded-lg font-bold transition-all ${
-                mode === 'write' ? 'bg-green-600 text-white shadow-lg' : 'bg-gray-800 text-gray-400 hover:bg-gray-700 border border-gray-700'
-              }`}
-            >
-              كتابة (Write)
-            </button>
-          </div>
-
           <input 
-            type="text" 
-            placeholder="اسم المستخدم (Username)" 
-            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-blue-500 outline-none transition-all"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="text" placeholder="Username" 
+            className="w-full p-3 rounded bg-gray-800 border border-gray-700 outline-none"
+            value={username} onChange={(e) => setUsername(e.target.value)}
           />
+
+          <div className="flex gap-2">
+            <button onClick={() => setMode('read')} className={`flex-1 py-2 rounded font-bold ${mode === 'read' ? 'bg-blue-600' : 'bg-gray-800'}`}>Read</button>
+            <button onClick={() => setMode('write')} className={`flex-1 py-2 rounded font-bold ${mode === 'write' ? 'bg-green-600' : 'bg-gray-800'}`}>Write</button>
+          </div>
 
           {mode === 'write' && (
             <input 
-              type="text" 
-              placeholder="القيمة المراد كتابتها (Value)" 
-              className="w-full p-3 rounded-lg bg-gray-800 border border-green-700 focus:border-green-500 outline-none transition-all"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
+              type="text" placeholder="Data to write..." 
+              className="w-full p-3 rounded bg-gray-800 border border-green-900 outline-none"
+              value={value} onChange={(e) => setValue(e.target.value)}
             />
           )}
 
-          <button 
-            onClick={handleAction} 
-            disabled={loading}
-            className={`w-full py-3 rounded-lg font-bold shadow-lg transition-all text-white ${
-              mode === 'read' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'
-            } ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {loading ? 'جاري الفحص...' : (mode === 'read' ? 'تنفيذ القراءة' : 'تنفيذ الكتابة')}
+          <button onClick={handleAction} disabled={loading} className="w-full bg-blue-500 py-3 rounded font-black hover:bg-blue-400 transition-all">
+            {loading ? "PROCESSING..." : "EXECUTE REQUEST"}
           </button>
         </div>
 
-        {result && <div className="mt-4 p-3 rounded-lg bg-green-900/30 border border-green-700 text-green-300 text-sm">{result}</div>}
-        {error && <div className="mt-4 p-3 rounded-lg bg-red-900/30 border border-red-700 text-red-300 text-sm">{error}</div>}
+        {/* عرض النتائج التقنية */}
+        {result && (
+          <div className="mt-6 p-4 rounded bg-blue-900/10 border border-blue-500 text-xs font-mono space-y-2">
+            <p className="text-green-400 font-bold">SUCCESS:</p>
+            <p>MESSAGE: {result.result}</p>
+            <p>ROLE: {result.role}</p>
+            <p className="truncate">HASH: {result.Encrypted_Password}</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="mt-6 p-4 rounded bg-red-900/10 border border-red-500 text-xs font-mono">
+            <p className="text-red-500 font-bold">DENIED:</p>
+            <p>{error}</p>
+          </div>
+        )}
       </div>
     </div>
   );
