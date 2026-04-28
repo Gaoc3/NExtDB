@@ -52,7 +52,11 @@ export default function Home() {
             <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-bold shadow-lg transition-all">
               Sign Up
             </button>
-            <button type="button" className="flex-1 bg-gray-700 hover:bg-gray-800 py-3 rounded-lg font-bold shadow-lg transition-all" onClick={() => window.location.href = '/login'}>
+            <button
+              type="button"
+              className="flex-1 bg-gray-700 hover:bg-gray-800 py-3 rounded-lg font-bold shadow-lg transition-all"
+              onClick={() => router.push('/login')}
+            >
               Login
             </button>
           </div>
