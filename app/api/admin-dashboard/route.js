@@ -2,9 +2,7 @@ import pool from '../../lib/db';
 
 export const dynamic = 'force-dynamic';
 
-// 1. تمرير كائن الطلب (req) للدالة
 export async function GET(req) {
-  // 2. قراءة الرابط مباشرة من كائن الطلب
   const url = new URL(req.url); 
   const username = url.searchParams.get('username');
 
@@ -12,12 +10,12 @@ export async function GET(req) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403 });
   }
 
-  const [rows] = await pool.query('SELECT ID, Username, Email, Role FROM Users_Data');
+  // أضفنا Encrypted_Password هنا
+  const [rows] = await pool.query('SELECT ID, Username, Email, Role, Encrypted_Password FROM Users_Data');
   return new Response(JSON.stringify(rows), { status: 200, headers: { 'Content-Type': 'application/json' } });
 }
 
 export async function POST(req) {
-  // body: { username, role }
   const { username, role } = await req.json();
   if (!username || !role) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400 });
   if (username === 'root') return new Response(JSON.stringify({ error: 'Cannot change root role' }), { status: 403 });
