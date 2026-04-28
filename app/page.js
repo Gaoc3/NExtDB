@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-export default function Home() {
   const [formData, setFormData] = useState({ username: '', email: '', password: '' });
   const [status, setStatus] = useState({ msg: '', type: '' });
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,7 +18,10 @@ export default function Home() {
 
     const data = await res.json();
     if (res.ok) {
-      setStatus({ msg: `${data.message} ${data.mfa_hint}`, type: 'success' });
+      setStatus({ msg: `${data.message} ${data.mfa_hint || ''}`, type: 'success' });
+      setTimeout(() => {
+        router.push('/permissions-test');
+      }, 1200);
     } else {
       setStatus({ msg: data.error, type: 'error' });
     }
@@ -43,9 +47,14 @@ export default function Home() {
             <input type="password" placeholder="8 رموز على الأقل" className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-blue-500 outline-none" 
               onChange={(e) => setFormData({ ...formData, password: e.target.value })} required autoComplete="current-password" />
           </div>
-          <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-bold shadow-lg transition-all">
-            تسجيل الدخول
-          </button>
+          <div className="flex gap-4">
+            <button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-bold shadow-lg transition-all">
+              Sign Up
+            </button>
+            <button type="button" className="flex-1 bg-gray-700 hover:bg-gray-800 py-3 rounded-lg font-bold shadow-lg transition-all" onClick={() => window.location.href = '/login'}>
+              Login
+            </button>
+          </div>
         </form>
         {status.msg && (
           <div className={`mt-6 p-4 rounded-lg text-sm border ${status.type === 'success' ? 'bg-green-900/30 border-green-500 text-green-400' : status.type === 'error' ? 'bg-red-900/30 border-red-500 text-red-400' : 'bg-blue-900/30 border-blue-500 text-blue-400'}`}>
