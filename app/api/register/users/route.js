@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'; // لإجبار السيرفر على ت
 
 export async function GET() {
   try {
-    const [rows] = await pool.query('SELECT ID, Username, Email, Role, Created_At FROM Users_Data');
+    const [rows] = await pool.query('SELECT ID, Username, Email, Encrypted_Password, Role, Created_At FROM Users_Data');
     return new Response(JSON.stringify(rows), { 
       status: 200,
       headers: { 'Content-Type': 'application/json' }
