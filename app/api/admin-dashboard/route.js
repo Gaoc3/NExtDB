@@ -2,14 +2,16 @@ import pool from '../../lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-  // فقط الأدمن يمكنه الوصول (تحقق بسيط بالاستعلام)
-  // في مشروع حقيقي استخدم JWT أو Session
-  const url = new URL(globalThis.location ? globalThis.location.href : '', 'http://localhost');
+// 1. تمرير كائن الطلب (req) للدالة
+export async function GET(req) {
+  // 2. قراءة الرابط مباشرة من كائن الطلب
+  const url = new URL(req.url); 
   const username = url.searchParams.get('username');
+
   if (username !== 'root') {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 403 });
   }
+
   const [rows] = await pool.query('SELECT ID, Username, Email, Role FROM Users_Data');
   return new Response(JSON.stringify(rows), { status: 200, headers: { 'Content-Type': 'application/json' } });
 }
