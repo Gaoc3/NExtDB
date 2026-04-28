@@ -2,67 +2,53 @@
 import { useState } from 'react';
 
 export default function PermissionsTest() {
-  const [mode, setMode] = useState('read'); 
+  const [mode, setMode] = useState('read');
   const [username, setUsername] = useState('');
   const [value, setValue] = useState('');
-  const [response, setResponse] = useState(null);
-  const [error, setError] = useState(null);
+  const [res, setRes] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleExecute = async () => {
-    setLoading(true); setResponse(null); setError(null);
-    try {
-      const res = await fetch('/api/permissions-test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, action: mode, value }),
-      });
-      const data = await res.json();
-      if (res.ok) setResponse(data);
-      else setError(data);
-    } catch (err) { alert("Server Error"); }
-    finally { setLoading(false); }
+    setLoading(true); setRes(null);
+    const response = await fetch('/api/permissions-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, action: mode, value }),
+    });
+    const data = await response.json();
+    setRes(data);
+    setLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-100 flex items-center justify-center p-4 font-mono">
-      <div className="bg-gray-900 border border-blue-900/50 p-8 rounded-2xl shadow-2xl w-full max-w-md">
-        <h1 className="text-xl font-bold text-blue-500 mb-6 text-center italic tracking-tighter">PERMISSIONS LAB v2.0</h1>
-        
+      <div className="bg-gray-900 border border-blue-900/40 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+        <h1 className="text-xl font-bold text-blue-500 mb-6 text-center italic">PERMISSION LAB</h1>
         <div className="space-y-4">
-          <input 
-            type="text" placeholder="Username" 
-            className="w-full p-3 rounded bg-black border border-gray-800 outline-none focus:border-blue-500 transition-all"
-            value={username} onChange={(e) => setUsername(e.target.value)}
-          />
-
+          <input type="text" placeholder="Username" className="w-full p-3 rounded bg-black border border-gray-800 outline-none focus:border-blue-500" value={username} onChange={(e) => setUsername(e.target.value)} />
           <div className="flex gap-2">
-            <button onClick={() => setMode('read')} className={`flex-1 py-2 rounded font-bold ${mode === 'read' ? 'bg-blue-600 shadow-lg' : 'bg-gray-800 text-gray-500'}`}>READ</button>
-            <button onClick={() => setMode('write')} className={`flex-1 py-2 rounded font-bold ${mode === 'write' ? 'bg-green-600 shadow-lg' : 'bg-gray-800 text-gray-500'}`}>WRITE</button>
+            <button onClick={() => setMode('read')} className={`flex-1 py-2 rounded font-bold ${mode === 'read' ? 'bg-blue-600' : 'bg-gray-800 text-gray-500'}`}>READ</button>
+            <button onClick={() => setMode('write')} className={`flex-1 py-2 rounded font-bold ${mode === 'write' ? 'bg-green-600' : 'bg-gray-800 text-gray-500'}`}>WRITE</button>
           </div>
-
-          {mode === 'write' && (
-            <input 
-              type="text" placeholder="Value to inject..." 
-              className="w-full p-3 rounded bg-black border border-green-900/50 outline-none"
-              value={value} onChange={(e) => setValue(e.target.value)}
-            />
-          )}
-
-          <button onClick={handleExecute} disabled={loading} className="w-full bg-blue-500 py-3 rounded font-black hover:bg-blue-400 active:scale-95 transition-all">
-            {loading ? "COMMUNICATING WITH DB..." : "EXECUTE REQUEST"}
+          {mode === 'write' && <input type="text" placeholder="Value..." className="w-full p-3 rounded bg-black border border-green-900/40 outline-none" value={value} onChange={(e) => setValue(e.target.value)} />}
+          <button onClick={handleExecute} disabled={loading} className="w-full bg-blue-500 py-3 rounded font-black active:scale-95 transition-all">
+            {loading ? "EXECUTING..." : "EXECUTE REQUEST"}
           </button>
         </div>
 
-        {/* عرض النتيجة والهاش */}
-        {(response || error) && (
-          <div className={`mt-6 p-4 rounded border text-xs space-y-2 ${response ? 'bg-green-900/10 border-green-500' : 'bg-red-900/10 border-red-500'}`}>
-            <p className="font-bold underline uppercase">{response ? "Access Granted" : "Access Denied"}</p>
-            <p className="text-gray-200">{response?.result || error?.error}</p>
-            <div className="pt-2 border-t border-gray-800 mt-2">
-              <span className="text-gray-500 block mb-1 uppercase text-[10px]">Security Hash:</span>
-              <code className="text-yellow-600 bg-black p-1 rounded block break-all">{response?.hash || error?.hash}</code>
-            </div>
+        {res && (
+          <div className="mt-6 overflow-hidden rounded-lg border border-gray-800">
+            <table className="w-full text-xs text-right border-collapse">
+              <thead className={`bg-gray-800/50 ${res.error ? 'text-red-400' : 'text-green-400'}`}>
+                <tr><th className="p-3 border-b border-gray-800" colSpan="2">{res.error ? "[DENIED]" : "[GRANTED]"}</th></tr>
+              </thead>
+              <tbody className="bg-black/40 divide-y divide-gray-800">
+                <tr><td className="p-3 text-gray-500 bg-gray-900/30 w-1/3">DATA</td><td className="p-3 text-gray-200">{res.result || res.error}</td></tr>
+                <tr><td className="p-3 text-gray-500 bg-gray-900/30">ROLE</td><td className="p-3 text-blue-400">{res.role}</td></tr>
+                <tr><td className="p-3 text-gray-500 bg-gray-900/30">HASH</td><td className="p-3 text-yellow-600 truncate max-w-[150px]">{res.hash}</td></tr>
+                {res.note && <tr><td className="p-3 text-gray-500 bg-gray-900/30">STATUS</td><td className="p-3 text-red-500">{res.note}</td></tr>}
+              </tbody>
+            </table>
           </div>
         )}
       </div>
